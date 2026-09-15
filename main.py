@@ -82,7 +82,7 @@ from telebot import types
 import yt_dlp
 
 # --- SOZLAMALAR ---
-BOT_TOKEN = "8737032771:AAFdoHmcpmAPSRQh3t-ssbIFM7BJ5pZDdvg"
+BOT_TOKEN = "8737032771:AAEMhkvI4epPXb-rMK9AhOTuWy8UuSB-WG0"
 ADMIN_ID = 8274938812  # O'zingizning Telegram ID raqamingizni yozing!
 
 bot = telebot.TeleBot(BOT_TOKEN)
