@@ -6,6 +6,27 @@ import time
 import sqlite3
 import shutil
 import platform
+import os
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+# --- RENDER PORT TEKSHIRUVI UCHUN DUMMY SERVER ---
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot is alive!")
+
+def run_health_check_server():
+    port = int(os.environ.get("PORT", 8080))
+    server = HTTPServer(('0.0.0.0', port), HealthCheckHandler)
+    server.serve_forever()
+
+# Veb-serverni alohida oqimda (thread) ishga tushiramiz
+threading.Thread(target=run_health_check_server, daemon=True).start()
+
+# --- SIZNING MAVJUD KODINGIZ SHUYERDAN DVOAM ETADI ---
+# import sys, subprocess, os...
 
 # --- 1. AVTOMATIK O'RNATISH TIZIMI ---
 
