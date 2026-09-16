@@ -6,7 +6,6 @@ import time
 import sqlite3
 import shutil
 import platform
-import os
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
@@ -24,9 +23,6 @@ def run_health_check_server():
 
 # Veb-serverni alohida oqimda (thread) ishga tushiramiz
 threading.Thread(target=run_health_check_server, daemon=True).start()
-
-# --- SIZNING MAVJUD KODINGIZ SHUYERDAN DVOAM ETADI ---
-# import sys, subprocess, os...
 
 # --- 1. AVTOMATIK O'RNATISH TIZIMI ---
 
@@ -278,18 +274,11 @@ def callback_basics(call):
 
 # --- BARCHA XABARLARNI QABUL QILISH ---
 @bot.message_handler(func=lambda message: True, content_types=['text', 'photo', 'video'])
-ydl_opts = {
-    'extract_flat': True, 
-    'quiet': True,
-    'no_warnings': True,
-    'extractor_args': {
-        'youtube': {
-            'player_client': ['android', 'ios']
-        }
-    }
-}
-
-
+def handle_message(message):
+    chat_id = message.chat.id
+    user_id = message.from_user.id
+    text = message.text if message.content_type == 'text' else ""
+    
     # ADMIN HOLATLARI
     state = user_states.get(chat_id)
     if state == "WAITING_BROADCAST" and user_id == ADMIN_ID:
@@ -314,7 +303,7 @@ ydl_opts = {
             db_add_channel(ch_id, link)
             bot.send_message(chat_id, f"✅ Kanal qo'shildi: {ch_id}")
         except Exception:
-            bot.send_message(chat_id, "❌ Format xato! Bunday yuboring: `@username https://t.me/link`")
+            bot.send_message(chat_id, "❌ Format xato! Bunday yuboring: `@username https://t.me/link`", parse_mode="Markdown")
         return
 
     # MAJBURIY OBUNA TEKSHIRUVI
@@ -323,7 +312,7 @@ ydl_opts = {
         return
 
     url_pattern = re.compile(r'https?://[^\s]+')
-    if url_pattern.match(text):
+    if text and url_pattern.match(text):
         # YUKLASH UCHUN HAVOLA
         user_states[f"url_{user_id}"] = text
         markup = types.InlineKeyboardMarkup(row_width=3)
@@ -359,18 +348,9 @@ ydl_opts = {
 # --- YUKLAB OLISH (CALLBACK) ---
 @bot.callback_query_handler(func=lambda call: call.data.startswith("dl_") or call.data.startswith("play_"))
 def callback_download_media(call):
-base_opts = {
-    'outtmpl': f'{out_filename}.%(ext)s',
-    'progress_hooks': [lambda d: progress_hook(d, status_msg)],
-    'quiet': True,
-    'no_warnings': True,
-    'extractor_args': {
-        'youtube': {
-            'player_client': ['android', 'ios']
-        }
-    }
-}
-
+    chat_id = call.message.chat.id
+    user_id = call.from_user.id
+    data = call.data
 
     if data.startswith("play_"):
         url = f"https://www.youtube.com/watch?v={data.replace('play_', '')}"
@@ -393,7 +373,7 @@ base_opts = {
         'outtmpl': f'{out_filename}.%(ext)s',
         'progress_hooks': [lambda d: progress_hook(d, status_msg)],
         'quiet': True,
-        'js_runtimes': ['node'] # Node.js ulanishi
+        'js_runtimes': ['node']
     }
 
     if fmt == "mp3":
