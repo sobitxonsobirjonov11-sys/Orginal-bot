@@ -278,10 +278,17 @@ def callback_basics(call):
 
 # --- BARCHA XABARLARNI QABUL QILISH ---
 @bot.message_handler(func=lambda message: True, content_types=['text', 'photo', 'video'])
-def handle_all_messages(message):
-    chat_id = message.chat.id
-    user_id = message.from_user.id
-    text = message.text or ""
+ydl_opts = {
+    'extract_flat': True, 
+    'quiet': True,
+    'no_warnings': True,
+    'extractor_args': {
+        'youtube': {
+            'player_client': ['android', 'ios']
+        }
+    }
+}
+
 
     # ADMIN HOLATLARI
     state = user_states.get(chat_id)
@@ -352,9 +359,18 @@ def handle_all_messages(message):
 # --- YUKLAB OLISH (CALLBACK) ---
 @bot.callback_query_handler(func=lambda call: call.data.startswith("dl_") or call.data.startswith("play_"))
 def callback_download_media(call):
-    chat_id = call.message.chat.id
-    user_id = call.from_user.id
-    data = call.data
+base_opts = {
+    'outtmpl': f'{out_filename}.%(ext)s',
+    'progress_hooks': [lambda d: progress_hook(d, status_msg)],
+    'quiet': True,
+    'no_warnings': True,
+    'extractor_args': {
+        'youtube': {
+            'player_client': ['android', 'ios']
+        }
+    }
+}
+
 
     if data.startswith("play_"):
         url = f"https://www.youtube.com/watch?v={data.replace('play_', '')}"
